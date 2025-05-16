@@ -1,4 +1,4 @@
-from Screens.Screen import Screen
+﻿from Screens.Screen import Screen
 from Components.MenuList import MenuList
 from Components.Label import Label
 from Components.Pixmap import Pixmap
@@ -10,11 +10,11 @@ import os
 
 class CobraPanel(Screen):
     skin = """
-    <screen name="CobraPanel" position="center,center" size="560,400" title="Cobra Panel">
-        <widget name="info" position="10,10" size="540,25" font="Regular;20" />
-        <widget name="menu" position="10,40" size="350,300" />
-        <widget name="icon" position="370,60" size="160,160" alphatest="on" />
-    </screen>
+   <screen name="CobraPanel" position="center,center" size="900,560" title="Cobra Pannel">
+        <widget name="info" position="20,20" size="860,40" font="Regular;24" />
+        <widget name="menu" position="20,70" size="500,450" font="Regular;24" />
+        <widget name="icon" position="540,150" size="320,240" alphatest="on" />
+   </screen>
     """
 
     def __init__(self, session):
