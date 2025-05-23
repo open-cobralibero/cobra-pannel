@@ -1,5 +1,5 @@
 
 # COBRA_PANNEL
-  # Cobraliberosat    
-     fix Thanks ^^enri74^^
+  # Cobraliberosat  👋  
+     fix Thanks ^^enri74^^👋
 
