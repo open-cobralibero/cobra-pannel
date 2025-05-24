@@ -14,7 +14,7 @@ import os.path
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="1000,620" title="Cobra Pannel">
+        <screen name="CobraPanel" position="center,center" size="1100,600" title="Cobra Pannel">
             <widget name="info" position="30,30" size="940,40" font="Regular;32" />
             <widget name="menu" position="30,90" size="600,480" font="Regular;28" />
             <widget name="icon" position="660,180" size="300,300" alphatest="on" />
