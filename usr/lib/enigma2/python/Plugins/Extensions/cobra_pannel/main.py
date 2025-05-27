@@ -82,6 +82,8 @@ class CobraPanel(Screen):
                 displaylist.append(prefix + plugin["name"])
 
             self["list"].setList(displaylist)
+            if len(self.plugins) > 0:
+                self["list"].moveToIndex(0)
             self.updateInfo()
         except Exception as e:
             self["title"].setText("Cobra Panel - Seleziona plugin da installare")
@@ -109,13 +111,15 @@ class CobraPanel(Screen):
         image_url = plugin.get("image", "")
         local_img = f"/tmp/plugin_img_{index}.png"
         try:
-            if image_url.startswith("http"):
-                urllib.request.urlretrieve(image_url, local_img)
-                self["icon"].instance.setPixmapFromFile(local_img)
+            if self["icon"].instance:
+                if image_url.startswith("http"):
+                    urllib.request.urlretrieve(image_url, local_img)
+                    self["icon"].instance.setPixmapFromFile(local_img)
+                else:
+                    self["icon"].instance.setPixmapFromFile(image_url)
                 self["icon"].show()
             else:
-                self["icon"].instance.setPixmapFromFile(image_url)
-                self["icon"].show()
+                print("Icona non inizializzata")
         except Exception as e:
             print(f"Errore caricamento immagine plugin: {e}")
             self["icon"].hide()
@@ -124,11 +128,18 @@ class CobraPanel(Screen):
         installed = self.isInstalled(pkg_name)
         icon_name = "green.png" if installed else "gray.png"
         icon_path = f"/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/icons/{icon_name}"
-        if os.path.exists(icon_path):
-            self["status"].instance.setPixmapFromFile(icon_path)
-            self["status"].show()
-        else:
-            print(f"Icona stato non trovata: {icon_path}")
+        try:
+            if self["status"].instance:
+                if os.path.exists(icon_path):
+                    self["status"].instance.setPixmapFromFile(icon_path)
+                    self["status"].show()
+                else:
+                    print(f"Icona stato non trovata: {icon_path}")
+                    self["status"].hide()
+            else:
+                print("Stato non inizializzato")
+        except Exception as e:
+            print(f"Errore caricamento stato plugin: {e}")
             self["status"].hide()
 
     def up(self):
