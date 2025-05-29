@@ -14,16 +14,16 @@ from urllib.parse import urlparse
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="900,700" title="Panel CBL">
+        <screen name="CobraPanel" position="center,center" size="1000,700" title="Panel CBL">
             <widget name="title" position="10,10" size="600,40" font="Regular;28" />
             <widget name="list" position="10,60" size="600,500" font="Regular;26" itemHeight="40" />
             <widget name="icon" position="620,60" size="250,250" alphatest="on" />
             <widget name="status" position="620,320" size="40,40" alphatest="on" />
             <widget name="desc" position="620,380" size="250,180" font="Regular;22" />
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="690,190" size="150,150" alphatest="blend" />
-            <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="530,10" size="150,150" alphatest="blend" />
-            <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="170,610" size="100,100" alphatest="blend" />
-            <widget name="footer" position="center,660" size="860,40" font="Regular;26" halign="center" valign="center" />
+            <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="470,20" size="120,80" alphatest="blend" />
+            <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="690,530" size="150,150" alphatest="blend" />
+           <widget name="footer" position="250,620" size="300,60" font="Regular;21" halign="center" valign="center" />
         </screen>
     """
 
@@ -39,7 +39,7 @@ class CobraPanel(Screen):
         self["logo"] = Pixmap()
         self["logo2"] = Pixmap()
         self["logo3"] = Pixmap()
-        self["footer"] = Label("Welcome to... Cobra_Pannel - by CobraLiberosat")
+        self["footer"] = Label("Cobra_Pannel - by CobraLiberosat")
 
         self["actions"] = ActionMap(["OkCancelActions", "DirectionActions"], {
             "ok": self.confirmInstall,
