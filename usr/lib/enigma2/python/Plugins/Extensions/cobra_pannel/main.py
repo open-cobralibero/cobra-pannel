@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="1000,700" title="Panel CBL">
+        <screen name="CobraPanel" position="center,center" size="900,700" title="Panel CBL">
             <widget name="title" position="10,10" size="600,40" font="Regular;28" />
             <widget name="list" position="10,60" size="600,500" font="Regular;26" itemHeight="40" />
             <widget name="icon" position="620,60" size="250,250" alphatest="on" />
