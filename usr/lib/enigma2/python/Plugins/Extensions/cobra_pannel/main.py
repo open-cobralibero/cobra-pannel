@@ -14,13 +14,16 @@ from urllib.parse import urlparse
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="900,600" title="Cobra Panel">
+        <screen name="CobraPanel" position="center,center" size="900,700" title="Panel CBL">
             <widget name="title" position="10,10" size="600,40" font="Regular;28" />
             <widget name="list" position="10,60" size="600,500" font="Regular;26" itemHeight="40" />
             <widget name="icon" position="620,60" size="250,250" alphatest="on" />
             <widget name="status" position="620,320" size="40,40" alphatest="on" />
             <widget name="desc" position="620,380" size="250,180" font="Regular;22" />
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="690,190" size="150,150" alphatest="blend" />
+            <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="530,10" size="150,150" alphatest="blend" />
+            <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="170,610" size="100,100" alphatest="blend" />
+            <widget name="footer" position="center,660" size="860,40" font="Regular;26" halign="center" valign="center" />
         </screen>
     """
 
@@ -28,12 +31,15 @@ class CobraPanel(Screen):
         Screen.__init__(self, session)
         self.session = session
 
-        self["title"] = Label("Cobra Panel - Seleziona plugin da installare")
+        self["title"] = Label("Seleziona plugin da installare")
         self["list"] = MenuList([])
         self["icon"] = Pixmap()
         self["status"] = Pixmap()
         self["desc"] = Label("")
         self["logo"] = Pixmap()
+        self["logo2"] = Pixmap()
+        self["logo3"] = Pixmap()
+        self["footer"] = Label("Welcome to... Cobra_Pannel - by CobraLiberosat")
 
         self["actions"] = ActionMap(["OkCancelActions", "DirectionActions"], {
             "ok": self.confirmInstall,
@@ -43,29 +49,27 @@ class CobraPanel(Screen):
         }, -1)
 
         self.picload = ePicLoad()
-        self.statusload = ePicLoad()
-        self.logoPicLoad = ePicLoad()
-
         self.plugins = []
 
         self.loadLogo()
         self.loadPlugins()
 
     def loadLogo(self):
-        logopath = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png"
-        if os.path.exists(logopath):
+        for logo_name in ["logo", "logo2", "logo3"]:
+            logopath = f"/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/{logo_name}.png"
             try:
-                self.logoPicLoad.setPara((120, 40, 1, 1, False, 1, "#00000000"))
-                self.logoPicLoad.startDecode(logopath)
-                if self["logo"].instance:
-                    self["logo"].instance.setPixmap(self.logoPicLoad.getPixmap())
-                    self["logo"].show()
+                if os.path.exists(logopath):
+                    picload = ePicLoad()
+                    picload.setPara((350, 350, 1, 1, False, 1, "#00000000"))
+                    picload.startDecode(logopath)
+                    if self[logo_name].instance:
+                        self[logo_name].instance.setPixmap(picload.getPixmap())
+                        self[logo_name].show()
+                else:
+                    self[logo_name].hide()
             except Exception as e:
-                print(f"[COBRA LOGO] Errore caricamento logo: {e}")
-                self["logo"].hide()
-        else:
-            print("[COBRA LOGO] File logo non trovato.")
-            self["logo"].hide()
+                print(f"[COBRA LOGO] Errore caricamento {logo_name}: {e}")
+                self[logo_name].hide()
 
     def loadPlugins(self):
         try:
@@ -86,7 +90,7 @@ class CobraPanel(Screen):
                 self["list"].moveToIndex(0)
             self.updateInfo()
         except Exception as e:
-            self["title"].setText("Cobra Panel - Seleziona plugin da installare")
+            self["title"].setText("Errore nel caricamento dei plugin")
             self["desc"].setText(str(e))
 
     def isInstalled(self, pkgname):
@@ -118,8 +122,6 @@ class CobraPanel(Screen):
                 else:
                     self["icon"].instance.setPixmapFromFile(image_url)
                 self["icon"].show()
-            else:
-                print("Icona non inizializzata")
         except Exception as e:
             print(f"Errore caricamento immagine plugin: {e}")
             self["icon"].hide()
@@ -134,10 +136,7 @@ class CobraPanel(Screen):
                     self["status"].instance.setPixmapFromFile(icon_path)
                     self["status"].show()
                 else:
-                    print(f"Icona stato non trovata: {icon_path}")
                     self["status"].hide()
-            else:
-                print("Stato non inizializzato")
         except Exception as e:
             print(f"Errore caricamento stato plugin: {e}")
             self["status"].hide()
@@ -154,7 +153,6 @@ class CobraPanel(Screen):
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
             return
-
         plugin = self.plugins[index]
         name = plugin["name"]
         self.session.openWithCallback(
