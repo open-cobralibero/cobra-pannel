@@ -35,7 +35,7 @@ from urllib.parse import urlparse
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="950,660" title="Panel CBL">
+        <screen name="CobraPanel" position="center,center" size="970,660" title="Panel CBL">
             <widget name="title" position="10,10" size="600,40" font="Regular;28" />
             <widget name="list" position="10,60" size="600,500" font="Regular;26" itemHeight="40" />
             <widget name="icon" position="620,60" size="250,250" alphatest="on" />
@@ -44,7 +44,7 @@ class CobraPanel(Screen):
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="690,190" size="150,150" alphatest="blend" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="470,20" size="120,80" alphatest="blend" />
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="690,530" size="150,150" alphatest="blend" />
-            <widget name="footer" position="250,620" size="400,20" font="Regular;21" halign="center" valign="center" />
+            <widget name="footer" position="250,580" size="300,40" font="Regular;21" halign="center" valign="center" />
         </screen>
     """
 
