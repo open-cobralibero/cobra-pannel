@@ -41,7 +41,7 @@ class CobraPanel(Screen):
             <widget name="icon" position="620,60" size="250,250" alphatest="on" />
             <widget name="status" position="620,320" size="40,40" alphatest="on" />
             <widget name="desc" position="620,380" size="250,180" font="Regular;22" />
-            <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="690,190" size="150,150" alphatest="blend" />
+            <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="680,120" size="210,210" alphatest="blend" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="470,20" size="120,80" alphatest="blend" />
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="690,530" size="150,150" alphatest="blend" />
             <widget name="footer" position="250,580" size="300,40" font="Regular;21" halign="center" valign="center" />
