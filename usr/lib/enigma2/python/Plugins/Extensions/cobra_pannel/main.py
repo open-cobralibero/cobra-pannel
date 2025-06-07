@@ -12,7 +12,7 @@ import urllib.request
 import subprocess
 from urllib.parse import urlparse
 
-class CobraPanel(Screen):
+class CobraPanelScreen(Screen):  # <-- nome corretto per plugin.py
     skin = """
         <screen name="CobraPanel" position="center,center" size="900,700" title="Panel CBL">
             <widget name="title" position="10,10" size="600,40" font="Regular;28" />
@@ -23,7 +23,7 @@ class CobraPanel(Screen):
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="690,190" size="150,150" alphatest="blend" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="470,20" size="120,80" alphatest="blend" />
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="690,530" size="150,150" alphatest="blend" />
-           <widget name="footer" position="250,620" size="300,60" font="Regular;21" halign="center" valign="center" />
+            <widget name="footer" position="250,620" size="300,60" font="Regular;21" halign="center" valign="center" />
         </screen>
     """
 
@@ -48,9 +48,7 @@ class CobraPanel(Screen):
             "down": self.down
         }, -1)
 
-        self.picload = ePicLoad()
         self.plugins = []
-
         self.loadLogo()
         self.loadPlugins()
 
@@ -59,11 +57,8 @@ class CobraPanel(Screen):
             logopath = f"/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/{logo_name}.png"
             try:
                 if os.path.exists(logopath):
-                    picload = ePicLoad()
-                    picload.setPara((350, 350, 1, 1, False, 1, "#00000000"))
-                    picload.startDecode(logopath)
-                    if self[logo_name].instance:
-                        self[logo_name].instance.setPixmap(picload.getPixmap())
+                    if hasattr(self[logo_name], 'instance') and self[logo_name].instance:
+                        self[logo_name].instance.setPixmapFromFile(logopath)
                         self[logo_name].show()
                 else:
                     self[logo_name].hide()
@@ -86,9 +81,9 @@ class CobraPanel(Screen):
                 displaylist.append(prefix + plugin["name"])
 
             self["list"].setList(displaylist)
-            if len(self.plugins) > 0:
+            if self.plugins:
                 self["list"].moveToIndex(0)
-            self.updateInfo()
+                self.updateInfo()
         except Exception as e:
             self["title"].setText("Errore nel caricamento dei plugin")
             self["desc"].setText(str(e))
@@ -97,7 +92,7 @@ class CobraPanel(Screen):
         try:
             out = subprocess.getoutput(f"opkg list-installed | grep -i {pkgname}")
             return pkgname.lower() in out.lower()
-        except Exception:
+        except:
             return False
 
     def updateInfo(self):
@@ -109,19 +104,22 @@ class CobraPanel(Screen):
             return
 
         plugin = self.plugins[index]
-        desc = plugin.get("description", "Nessuna descrizione")
-        self["desc"].setText(desc)
+        self["desc"].setText(plugin.get("description", "Nessuna descrizione"))
 
         image_url = plugin.get("image", "")
         local_img = f"/tmp/plugin_img_{index}.png"
         try:
-            if self["icon"].instance:
-                if image_url.startswith("http"):
-                    urllib.request.urlretrieve(image_url, local_img)
+            if image_url.startswith("http"):
+                urllib.request.urlretrieve(image_url, local_img)
+                if hasattr(self["icon"], "instance") and self["icon"].instance:
                     self["icon"].instance.setPixmapFromFile(local_img)
-                else:
+                    self["icon"].show()
+            else:
+                if os.path.exists(image_url):
                     self["icon"].instance.setPixmapFromFile(image_url)
-                self["icon"].show()
+                    self["icon"].show()
+                else:
+                    self["icon"].hide()
         except Exception as e:
             print(f"Errore caricamento immagine plugin: {e}")
             self["icon"].hide()
@@ -130,15 +128,16 @@ class CobraPanel(Screen):
         installed = self.isInstalled(pkg_name)
         icon_name = "green.png" if installed else "gray.png"
         icon_path = f"/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/icons/{icon_name}"
+
         try:
-            if self["status"].instance:
-                if os.path.exists(icon_path):
+            if os.path.exists(icon_path):
+                if hasattr(self["status"], "instance") and self["status"].instance:
                     self["status"].instance.setPixmapFromFile(icon_path)
                     self["status"].show()
-                else:
-                    self["status"].hide()
+            else:
+                self["status"].hide()
         except Exception as e:
-            print(f"Errore caricamento stato plugin: {e}")
+            print(f"Errore stato plugin: {e}")
             self["status"].hide()
 
     def up(self):
@@ -153,8 +152,7 @@ class CobraPanel(Screen):
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
             return
-        plugin = self.plugins[index]
-        name = plugin["name"]
+        name = self.plugins[index]["name"]
         self.session.openWithCallback(
             self.startDownloadCallback,
             MessageBox,
@@ -165,13 +163,11 @@ class CobraPanel(Screen):
     def startDownloadCallback(self, confirmed):
         if confirmed:
             index = self["list"].getSelectedIndex()
-            plugin = self.plugins[index]
-            url = plugin["file"]
+            url = self.plugins[index]["file"]
             self.startDownload(url)
 
     def startDownload(self, url):
-        parsed_url = urlparse(url)
-        filename = os.path.basename(parsed_url.path)
+        filename = os.path.basename(urlparse(url).path)
         local_path = f"/tmp/{filename}"
         try:
             urllib.request.urlretrieve(url, local_path)
