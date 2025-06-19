@@ -81,6 +81,9 @@ class CobraPanel(Screen):
                 {"name": "Test Plugin A", "description": "Plugin demo A", "file": "", "image": ""},
                 {"name": "Test Plugin B", "description": "Plugin demo B", "file": "", "image": ""}
             ]
+            self["footer_status"].setText("Errore: impossibile caricare la lista plugin. Controlla connessione o server.")
+        else:
+            self["footer_status"].setText("")
 
         displaylist = []
         for plugin in self.plugins:
