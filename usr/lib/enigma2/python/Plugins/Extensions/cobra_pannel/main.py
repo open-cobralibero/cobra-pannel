@@ -17,16 +17,16 @@ from urllib.parse import urlparse
 class CobraPanel(Screen):
     skin = """
         <screen name="CobraPanel" position="center,center" size="1000,660" title="Panel CBL">
-            <widget name="title" position="10,10" size="600,40" font="Regular;28" />
-            <widget name="list" position="10,60" size="600,480" font="Regular;26" itemHeight="40" scrollbarMode="showOnDemand"/>
+            <widget name="title" position="10,10" size="600,40" font="Regular;28" foregroundColor="#FFFFFF" />
+            <widget name="list" position="10,60" size="600,480" font="Regular;26" itemHeight="40" scrollbarMode="showOnDemand" />
             <widget name="icon" position="620,60" size="250,250" alphatest="on" />
             <widget name="status" position="620,320" size="40,40" alphatest="on" />
-            <widget name="desc" position="620,380" size="360,60" font="Regular;22" />
+            <widget name="desc" position="620,380" size="360,60" font="Regular;22" foregroundColor="#FFFFFF" />
             <widget name="statusLabel" position="620,450" size="360,30" font="Regular;22" foregroundColor="#FFFFFF" />
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="680,120" size="210,210" alphatest="blend" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="470,20" size="120,80" alphatest="blend" />
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="690,530" size="150,150" alphatest="blend" />
-            <widget name="footer_fixed" position="10,580" size="950,30" font="Regular;26" halign="center" valign="center" foregroundColor="#00FF00" />
+            <widget name="footer_fixed" position="10,580" size="950,30" font="Regular;26" halign="center" valign="center" foregroundColor="#FFFFFF" />
             <widget name="legend" position="10,615" size="950,30" font="Regular;22" halign="center" valign="center" foregroundColor="#FFFFFF" />
             <widget name="footer_status" position="10,650" size="950,30" font="Regular;22" halign="center" valign="center" foregroundColor="#FFFFFF" />
         </screen>
@@ -46,7 +46,7 @@ class CobraPanel(Screen):
         self["logo2"] = Pixmap()
         self["logo3"] = Pixmap()
         self["footer_fixed"] = Label("Cobra_Pannel - by CobraLiberosat")
-        self["legend"] = Label()
+        self["legend"] = Label("")
         self["footer_status"] = Label("")
 
         self["actions"] = ActionMap(["OkCancelActions", "DirectionActions", "ColorActions"], {
@@ -72,28 +72,31 @@ class CobraPanel(Screen):
                     self.plugins = plugins_json
                 elif isinstance(plugins_json, dict) and "plugins" in plugins_json:
                     self.plugins = plugins_json["plugins"]
+                self.plugins.sort(key=lambda p: p.get("name", "").lower())
         except Exception:
             self.error_loading = True
-            self.plugins = [
-                {"name": "Test Plugin A", "description": "Plugin demo A", "file": "", "image": ""},
-                {"name": "Test Plugin B", "description": "Plugin demo B", "file": "", "image": ""}
-            ]
-
-        displaylist = []
-        for plugin in self.plugins:
-            pkg = os.path.basename(plugin["file"]).split("_")[0]
-            installed = self.isInstalled(pkg)
-            prefix = "● " if installed else "○ "
-            displaylist.append(prefix + plugin["name"])
-
-        self["list"].setList(displaylist)
-        if len(self.plugins) > 0:
-            self["list"].moveToIndex(0)
-        self.updateInfo()
+            self.plugins = []
 
         if self.error_loading:
             self["legend"].setText("⚠ Errore: impossibile caricare la lista plugin. Controlla la connessione o il server.")
-        # Non impostiamo legenda qui, la gestiamo in updateInfo()
+            self["footer_status"].setText("")
+            self["list"].setList([])
+            self["desc"].setText("")
+            self["icon"].hide()
+            self["status"].hide()
+            self["statusLabel"].setText("")
+        else:
+            displaylist = []
+            for plugin in self.plugins:
+                pkg = os.path.basename(plugin["file"]).split("_")[0]
+                installed = self.isInstalled(pkg)
+                prefix = "● " if installed else "○ "
+                displaylist.append(prefix + plugin["name"])
+
+            self["list"].setList(displaylist)
+            if len(self.plugins) > 0:
+                self["list"].moveToIndex(0)
+            self.updateInfo()
 
     def isInstalled(self, pkgname):
         try:
@@ -103,6 +106,9 @@ class CobraPanel(Screen):
             return False
 
     def updateInfo(self):
+        if self.error_loading:
+            return
+
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
             self["desc"].setText("")
@@ -149,18 +155,19 @@ class CobraPanel(Screen):
             self["statusLabel"].setText("○ Plugin non installato")
             self["legend"].setText("○ Plugin non installato - Premi OK per installare")
 
-        if self.error_loading:
-            self["legend"].setText("⚠ Errore: impossibile caricare la lista plugin. Controlla la connessione o il server.")
-
     def up(self):
-        self["list"].up()
-        self.updateInfo()
+        if not self.error_loading:
+            self["list"].up()
+            self.updateInfo()
 
     def down(self):
-        self["list"].down()
-        self.updateInfo()
+        if not self.error_loading:
+            self["list"].down()
+            self.updateInfo()
 
     def confirmInstall(self):
+        if self.error_loading:
+            return
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
             return
@@ -188,6 +195,8 @@ class CobraPanel(Screen):
             self.session.open(MessageBox, f"Errore nel download: {str(e)}", MessageBox.TYPE_ERROR)
 
     def confirmUninstall(self):
+        if self.error_loading:
+            return
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
             return
