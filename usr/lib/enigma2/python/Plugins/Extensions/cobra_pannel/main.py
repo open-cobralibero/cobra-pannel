@@ -1,10 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""
-Cobra_Pannel by CobraLiberosat - main.py
-"""
-
 from Screens.Screen import Screen
 from Components.MenuList import MenuList
 from Components.ActionMap import ActionMap
@@ -12,7 +8,6 @@ from Components.Label import Label
 from Components.Pixmap import Pixmap
 from Screens.MessageBox import MessageBox
 from Screens.Console import Console
-from enigma import ePicLoad
 import os
 import json
 import urllib.request
@@ -32,7 +27,8 @@ class CobraPanel(Screen):
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="470,20" size="120,80" alphatest="blend" />
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="690,530" size="150,150" alphatest="blend" />
             <widget name="footer_fixed" position="10,580" size="950,30" font="Regular;26" halign="center" valign="center" foregroundColor="#00FF00" />
-            <widget name="footer_status" position="10,620" size="950,30" font="Regular;22" halign="center" valign="center" foregroundColor="#FFFFFF" />
+            <widget name="legend" position="10,615" size="950,30" font="Regular;22" halign="center" valign="center" foregroundColor="#FFFFFF" />
+            <widget name="footer_status" position="10,650" size="950,30" font="Regular;22" halign="center" valign="center" foregroundColor="#FFFFFF" />
         </screen>
     """
 
@@ -50,6 +46,7 @@ class CobraPanel(Screen):
         self["logo2"] = Pixmap()
         self["logo3"] = Pixmap()
         self["footer_fixed"] = Label("Cobra_Pannel - by CobraLiberosat")
+        self["legend"] = Label()
         self["footer_status"] = Label("")
 
         self["actions"] = ActionMap(["OkCancelActions", "DirectionActions", "ColorActions"], {
@@ -61,12 +58,14 @@ class CobraPanel(Screen):
         }, -1)
 
         self.plugins = []
+        self.error_loading = False
         self.loadPlugins()
 
     def loadPlugins(self):
         url = "https://cobraliberosat.net/cobra_plugins/pluginlist.json"
+        self.error_loading = False
         try:
-            with urllib.request.urlopen(url) as response:
+            with urllib.request.urlopen(url, timeout=5) as response:
                 data = response.read().decode('utf-8')
                 plugins_json = json.loads(data)
                 if isinstance(plugins_json, list):
@@ -74,16 +73,11 @@ class CobraPanel(Screen):
                 elif isinstance(plugins_json, dict) and "plugins" in plugins_json:
                     self.plugins = plugins_json["plugins"]
         except Exception:
-            self.plugins = []
-
-        if not self.plugins:
+            self.error_loading = True
             self.plugins = [
                 {"name": "Test Plugin A", "description": "Plugin demo A", "file": "", "image": ""},
                 {"name": "Test Plugin B", "description": "Plugin demo B", "file": "", "image": ""}
             ]
-            self["footer_status"].setText("Errore: impossibile caricare la lista plugin. Controlla connessione o server.")
-        else:
-            self["footer_status"].setText("")
 
         displaylist = []
         for plugin in self.plugins:
@@ -96,6 +90,10 @@ class CobraPanel(Screen):
         if len(self.plugins) > 0:
             self["list"].moveToIndex(0)
         self.updateInfo()
+
+        if self.error_loading:
+            self["legend"].setText("⚠ Errore: impossibile caricare la lista plugin. Controlla la connessione o il server.")
+        # Non impostiamo legenda qui, la gestiamo in updateInfo()
 
     def isInstalled(self, pkgname):
         try:
@@ -110,8 +108,8 @@ class CobraPanel(Screen):
             self["desc"].setText("")
             self["icon"].hide()
             self["status"].hide()
-            self["footer_status"].setText("")
             self["statusLabel"].setText("")
+            self["legend"].setText("")
             return
 
         plugin = self.plugins[index]
@@ -145,11 +143,14 @@ class CobraPanel(Screen):
             self["status"].hide()
 
         if installed:
-            self["footer_status"].setText("● Plugin installato - Premi il tasto ROSSO per disinstallare")
             self["statusLabel"].setText("● Plugin installato")
+            self["legend"].setText("● Plugin installato - Premi il tasto ROSSO per disinstallare")
         else:
-            self["footer_status"].setText("○ Plugin non installato - Premi OK per installare")
             self["statusLabel"].setText("○ Plugin non installato")
+            self["legend"].setText("○ Plugin non installato - Premi OK per installare")
+
+        if self.error_loading:
+            self["legend"].setText("⚠ Errore: impossibile caricare la lista plugin. Controlla la connessione o il server.")
 
     def up(self):
         self["list"].up()
@@ -205,3 +206,4 @@ class CobraPanel(Screen):
     def uninstall(self, pkg):
         self.session.open(Console, title="Disinstallazione Plugin", cmdlist=[f"opkg remove --force-depends {pkg}"])
         self.loadPlugins()
+
