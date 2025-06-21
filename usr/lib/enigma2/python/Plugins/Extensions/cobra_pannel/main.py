@@ -18,7 +18,7 @@ class CobraPanel(Screen):
     skin = """
         <screen name="CobraPanel" position="center,center" size="960,640" title="Panel CBL">
             <widget name="title" position="10,10" size="400,40" font="Regular;28" />
-            <widget name="list" position="10,60" size="400,400" font="Regular;22" itemHeight="36" scrollbarMode="showOnDemand"/>
+            <widget name="list" position="10,60" size="400,400" font="Regular;28" itemHeight="36" scrollbarMode="showOnDemand"/>
             <widget name="icon" position="420,60" size="220,220" alphatest="on" />
             <widget name="desc" position="420,290" size="460,100" font="Regular;20" />
             <widget name="status" position="420,400" size="40,40" alphatest="on" />
@@ -26,9 +26,9 @@ class CobraPanel(Screen):
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="580,80" size="210,210" alphatest="blend" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="470,20" size="120,80" alphatest="blend" />
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="690,530" size="150,150" alphatest="blend" />
-            <widget name="footer" position="10,470" size="880,30" font="Regular;20" halign="center" foregroundColor="#FFFFFF" />
-            <widget name="legend" position="10,510" size="880,30" font="Regular;20" halign="center" foregroundColor="#FFFFFF" />
-            <widget name="footer_status" position="10,600" size="880,30" font="Regular;22" halign="center" foregroundColor="#FFFFFF" />
+            <widget name="footer" position="10,470" size="880,30" font="Regular;22" halign="center" foregroundColor="#FFFFFF" />
+            <widget name="legend" position="10,510" size="880,30" font="Regular;22" halign="center" foregroundColor="#FFFFFF" />
+            <widget name="footer_status" position="10,600" size="880,30" font="Regular;26" halign="center" foregroundColor="#FFFFFF" />
         </screen>
     """
 
