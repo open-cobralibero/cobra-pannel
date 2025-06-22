@@ -1,0 +1,7 @@
+Package: enigma2-plugin-extensions-cobra_pannel
+Version: 1.0
+Description: Cobra Pannel Plugin
+Section: extra
+Priority: optional
+Architecture: all
+Maintainer: CobraSat
