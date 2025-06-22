@@ -27,6 +27,7 @@ class CobraPanel(Screen):
             <widget name="status" position="510,530" size="40,40" alphatest="on" zPosition="10" />
             <widget name="statusLabel" position="560,530" size="570,40" font="Regular;22" foregroundColor="#FFFFFF" />
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
+            <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,300" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="footer" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#AAAAAA" />
             <widget name="legend" position="30,640" size="1120,30" font="Regular;20" halign="center" foregroundColor="#888888" />
             <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="30,600" size="150,150" alphatest="blend" zPosition="10" />
@@ -46,6 +47,7 @@ class CobraPanel(Screen):
         self["status"] = Pixmap()
         self["statusLabel"] = Label("")
         self["logo"] = Pixmap()
+        self["logo2"] = Pixmap()
         self["button_ok"] = Pixmap()
         self["button_red"] = Pixmap()
         self["legend"] = Label("")
