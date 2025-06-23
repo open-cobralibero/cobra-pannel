@@ -16,6 +16,7 @@ import subprocess
 import urllib.request
 from urllib.parse import urlparse
 
+
 class CobraPanel(Screen):
     skin = """
         <screen name="CobraPanel" position="center,center" size="1180,710" title="CobraPanel Modern" backgroundColor="#202020">
@@ -53,17 +54,22 @@ class CobraPanel(Screen):
         self["legend"] = Label("")
         self["footer"] = Label("Cobra_Pannel - by CobraLiberosat")
 
-        self["actions"] = ActionMap(["OkCancelActions", "DirectionActions", "ColorActions"], {
-            "ok": self.installSelectedPlugin,
-            "green": self.installSelectedPlugin,
-            "cancel": self.close,
-            "up": self.up,
-            "down": self.down,
-            "red": self.confirmUninstall
-        }, -1)
+        self["actions"] = ActionMap(
+            ["OkCancelActions", "DirectionActions", "ColorActions"],
+            {
+                "ok": self.installSelectedPlugin,
+                "green": self.installSelectedPlugin,
+                "cancel": self.close,
+                "up": self.up,
+                "down": self.down,
+                "red": self.confirmUninstall,
+            },
+            -1,
+        )
 
         self.plugins = []
         self.error_loading = False
+        self.error_msg = ""
 
         self.delayTimer = eTimer()
         self.delayTimer.callback.append(self.delayedUpdate)
@@ -78,41 +84,68 @@ class CobraPanel(Screen):
 
     def loadBackground(self):
         bg_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/background.png"
-        if os.path.exists(bg_path) and self["background"].instance:
-            self["background"].instance.setPixmapFromFile(bg_path)
+        try:
+            if os.path.exists(bg_path) and self["background"].instance:
+                self["background"].instance.setPixmapFromFile(bg_path)
+        except Exception as e:
+            print("[CobraPanel] Errore loadBackground:", e)
 
     def loadLogo(self):
         logo_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png"
-        if os.path.exists(logo_path) and self["logo"].instance:
-            self["logo"].instance.setPixmapFromFile(logo_path)
+        try:
+            if os.path.exists(logo_path) and self["logo"].instance:
+                self["logo"].instance.setPixmapFromFile(logo_path)
+        except Exception as e:
+            print("[CobraPanel] Errore loadLogo:", e)
 
     def loadPlugins(self):
         url = "https://cobraliberosat.net/cobra_plugins/pluginlist.json"
+        local_file = "/tmp/pluginlist.json"
         try:
-            with urllib.request.urlopen(url, timeout=5) as response:
-                data = response.read().decode('utf-8')
+            print("[CobraPanel] Download JSON da:", url)
+            urllib.request.urlretrieve(url, local_file)
+
+            with open(local_file, "r") as f:
+                data = f.read()
                 plugins_json = json.loads(data)
                 if isinstance(plugins_json, list):
                     self.plugins = plugins_json
                 else:
                     self.plugins = plugins_json.get("plugins", [])
-                self.plugins.sort(key=lambda p: p.get("name", "").lower())
-            self.error_loading = False
-        except Exception:
-            self.error_loading = True
-            self.plugins = []
 
+            self.plugins.sort(key=lambda p: p.get("name", "").lower())
+
+            self.error_loading = False
+            self.error_msg = ""
+        except Exception as e:
+            self.error_loading = True
+            self.error_msg = str(e)
+            self.plugins = []
+            print("[CobraPanel] Errore caricamento plugin list:", e)
+
+        self.fillList()
+
+        def delayed_update():
+            self.updateInfo()
+
+        self._timer = eTimer()
+        self._timer.callback.append(delayed_update)
+        self._timer.start(50, True)
+
+    def fillList(self):
         displaylist = []
         for plugin in self.plugins:
-            pkg = os.path.basename(plugin["file"]).split("_")[0]
-            installed = self.isInstalled(pkg)
-            prefix = "● " if installed else "○ "
-            displaylist.append(prefix + plugin["name"])
+            try:
+                pkg = os.path.basename(plugin["file"]).split("_")[0]
+                installed = self.isInstalled(pkg)
+                prefix = "● " if installed else "○ "
+                displaylist.append(prefix + plugin["name"])
+            except Exception as e:
+                print("[CobraPanel] Errore elenco plugin:", e)
 
         self["list"].setList(displaylist)
         if self.plugins:
             self["list"].moveToIndex(0)
-        self.updateInfo()
 
         if self.error_loading:
             self["footer"].setText("⚠ Errore: impossibile caricare la lista plugin.")
@@ -123,7 +156,8 @@ class CobraPanel(Screen):
         try:
             out = subprocess.getoutput("opkg list-installed | grep -i %s" % pkgname)
             return pkgname.lower() in out.lower()
-        except Exception:
+        except Exception as e:
+            print("[CobraPanel] Errore controllo installazione:", e)
             return False
 
     def updateInfo(self):
@@ -152,7 +186,8 @@ class CobraPanel(Screen):
                     self["icon"].show()
                 else:
                     self["icon"].hide()
-        except Exception:
+        except Exception as e:
+            print("[CobraPanel] Errore caricamento immagine:", e)
             self["icon"].hide()
 
         pkg = os.path.basename(plugin["file"]).split("_")[0]
@@ -174,14 +209,13 @@ class CobraPanel(Screen):
         else:
             self["statusLabel"].setText("○ Plugin non installato")
             self["legend"].setText("VERDE installa")
-            
+
     def clearInfo(self):
         self["desc"].setText("")
         self["statusLabel"].setText("")
         if self["status"].instance:
             self["status"].hide()
         self["legend"].setText("")
-        self["footer_status"].setText("")
         if self["icon"].instance:
             self["icon"].hide()
 
@@ -202,7 +236,7 @@ class CobraPanel(Screen):
             self.startDownloadCallback,
             MessageBox,
             "Vuoi installare il plugin '{}'?".format(plugin["name"]),
-            MessageBox.TYPE_YESNO
+            MessageBox.TYPE_YESNO,
         )
 
     def startDownloadCallback(self, confirmed):
@@ -219,9 +253,16 @@ class CobraPanel(Screen):
         local_path = "/tmp/%s" % filename
         try:
             urllib.request.urlretrieve(url, local_path)
-            self.session.open(Console, title="Installazione Plugin", cmdlist=["opkg install --force-overwrite %s" % local_path])
+            self.session.open(
+                Console,
+                title="Installazione Plugin",
+                cmdlist=["opkg install --force-overwrite %s" % local_path],
+            )
         except Exception as e:
-            self.session.open(MessageBox, "Errore nel download: %s" % str(e), MessageBox.TYPE_ERROR)
+            print("[CobraPanel] Errore download/installazione:", e)
+            self.session.open(
+                MessageBox, "Errore nel download: %s" % str(e), MessageBox.TYPE_ERROR
+            )
 
     def confirmUninstall(self):
         index = self["list"].getSelectedIndex()
@@ -234,12 +275,14 @@ class CobraPanel(Screen):
                 lambda confirmed: self.uninstall(pkg) if confirmed else None,
                 MessageBox,
                 "Vuoi disinstallare il plugin '{}'?".format(plugin_name),
-                MessageBox.TYPE_YESNO
+                MessageBox.TYPE_YESNO,
             )
         else:
             self.session.open(MessageBox, "Plugin non è installato.", MessageBox.TYPE_INFO)
 
     def uninstall(self, pkg):
-        self.session.open(Console, title="Disinstallazione Plugin", cmdlist=["opkg remove --force-depends %s" % pkg])
+        self.session.open(
+            Console, title="Disinstallazione Plugin", cmdlist=["opkg remove --force-depends %s" % pkg]
+        )
         self.loadPlugins()
 
