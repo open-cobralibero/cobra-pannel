@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="1180,710" title="CobraPanel Modern" backgroundColor="#202020">
+        <screen name="CobraPanel" position="center,center" size="1180,710" title="Panel CBL" backgroundColor="#202020">
             <widget name="background" position="0,0" size="1180,680" backgroundColor="#202020" zPosition="-100" />
             <widget name="title" position="30,15" size="800,50" font="Regular;32" foregroundColor="#FFFFFF" />
             <widget name="list" position="30,80" size="450,520" font="Regular;24" itemHeight="36" scrollbarMode="showOnDemand" backgroundColor="#303030" foregroundColor="#FFFFFF" />
@@ -29,6 +29,7 @@ class CobraPanel(Screen):
             <widget name="statusLabel" position="560,530" size="570,40" font="Regular;22" foregroundColor="#FFFFFF" />
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,300" size="280,280" alphatest="blend" zPosition="10" />
+            <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="800,620" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="footer" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#AAAAAA" />
             <widget name="legend" position="30,640" size="1120,30" font="Regular;20" halign="center" foregroundColor="#888888" />
             <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="30,600" size="150,150" alphatest="blend" zPosition="10" />
@@ -49,6 +50,7 @@ class CobraPanel(Screen):
         self["statusLabel"] = Label("")
         self["logo"] = Pixmap()
         self["logo2"] = Pixmap()
+        self["logo3"] = Pixmap()
         self["button_ok"] = Pixmap()
         self["button_red"] = Pixmap()
         self["legend"] = Label("")
