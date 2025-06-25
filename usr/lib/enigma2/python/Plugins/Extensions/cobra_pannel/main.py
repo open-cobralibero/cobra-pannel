@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="1180,710" title="Panel CBL" backgroundColor="#202020">
+        <screen name="CobraPanel" position="center,center" size="1180,710" title="Cobra Panel" backgroundColor="#202020">
             <widget name="background" position="0,0" size="1180,680" backgroundColor="#202020" zPosition="-100" />
             <widget name="title" position="30,15" size="800,50" font="Regular;32" foregroundColor="#FFFFFF" />
             <widget name="list" position="30,80" size="450,520" font="Regular;24" itemHeight="36" scrollbarMode="showOnDemand" backgroundColor="#303030" foregroundColor="#FFFFFF" />
@@ -28,12 +28,14 @@ class CobraPanel(Screen):
             <widget name="status" position="510,530" size="40,40" alphatest="on" zPosition="10" />
             <widget name="statusLabel" position="560,530" size="570,40" font="Regular;22" foregroundColor="#FFFFFF" />
             <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
-            <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,300" size="280,280" alphatest="blend" zPosition="10" />
+            <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,260" size="580,300" alphatest="blend" zPosition="10" />
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="800,620" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="footer" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#AAAAAA" />
-            <widget name="legend" position="30,640" size="1120,30" font="Regular;20" halign="center" foregroundColor="#888888" />
-            <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="30,600" size="150,150" alphatest="blend" zPosition="10" />
-            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="160,600" size="150,150" alphatest="blend" zPosition="10" />
+            <!-- Due label per legenda colorata -->
+            <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="30,635" size="150,40" alphatest="blend" zPosition="20" />
+            <widget name="legend_green" position="140,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#00FF00" />
+            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="570,635" size="150,40" alphatest="blend" zPosition="20" />
+            <widget name="legend_red" position="680,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#FF0000" />
         </screen>
     """
 
@@ -53,7 +55,8 @@ class CobraPanel(Screen):
         self["logo3"] = Pixmap()
         self["button_ok"] = Pixmap()
         self["button_red"] = Pixmap()
-        self["legend"] = Label("")
+        self["legend_green"] = Label("")
+        self["legend_red"] = Label("")
         self["footer"] = Label("Cobra_Pannel - by CobraLiberosat")
 
         self["actions"] = ActionMap(
@@ -207,17 +210,20 @@ class CobraPanel(Screen):
 
         if installed:
             self["statusLabel"].setText("● Plugin installato")
-            self["legend"].setText("ROSSO disinstalla")
+            self["legend_green"].setText("")
+            self["legend_red"].setText("ROSSO disinstalla")
         else:
             self["statusLabel"].setText("○ Plugin non installato")
-            self["legend"].setText("VERDE installa")
+            self["legend_red"].setText("")
+            self["legend_green"].setText("VERDE installa")
 
     def clearInfo(self):
         self["desc"].setText("")
         self["statusLabel"].setText("")
         if self["status"].instance:
             self["status"].hide()
-        self["legend"].setText("")
+        self["legend_green"].setText("")
+        self["legend_red"].setText("")
         if self["icon"].instance:
             self["icon"].hide()
 
