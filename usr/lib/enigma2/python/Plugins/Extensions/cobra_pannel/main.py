@@ -33,9 +33,9 @@ class CobraPanel(Screen):
             <widget name="footer" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#AAAAAA" />
             <!-- Due label per legenda colorata -->
             <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="30,635" size="150,40" alphatest="blend" zPosition="20" />
-            <widget name="legend_green" position="140,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#00FF00" />
+            <widget name="legend_green" position="130,645" size="150,30" font="Regular;22" halign="center" foregroundColor="#00FF00" />
             <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="570,635" size="150,40" alphatest="blend" zPosition="20" />
-            <widget name="legend_red" position="680,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#FF0000" />
+            <widget name="legend_red" position="670,645" size="150,30" font="Regular;22" halign="center" foregroundColor="#FF0000" />
         </screen>
     """
 
@@ -211,11 +211,11 @@ class CobraPanel(Screen):
         if installed:
             self["statusLabel"].setText("● Plugin installato")
             self["legend_green"].setText("")
-            self["legend_red"].setText("ROSSO disinstalla")
+            self["legend_red"].setText("RIMUOVI")
         else:
             self["statusLabel"].setText("○ Plugin non installato")
             self["legend_red"].setText("")
-            self["legend_green"].setText("VERDE installa")
+            self["legend_green"].setText("INSTALLA")
 
     def clearInfo(self):
         self["desc"].setText("")
