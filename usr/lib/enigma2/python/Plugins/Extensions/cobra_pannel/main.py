@@ -32,10 +32,10 @@ class CobraPanel(Screen):
             <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="800,620" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="footer" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#AAAAAA" />
             <!-- Due label per legenda colorata -->
-            <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="150,635" size="150,40" alphatest="blend" zPosition="20" />
-            <widget name="legend_green" position="30,645" size="150,30" font="Regular;22" halign="center" foregroundColor="#00FF00" />
-            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="670,635" size="150,40" alphatest="blend" zPosition="20" />
-            <widget name="legend_red" position="540,645" size="150,30" font="Regular;22" halign="center" foregroundColor="#FF0000" />
+            <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="42,665" size="150,40" alphatest="blend" zPosition="20" />
+            <widget name="legend_green" position="20,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#00FF00" backgroundColor="#202020" />
+            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="1040,670" size="150,40" alphatest="blend" zPosition="20" />
+            <widget name="legend_red" position="1010,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#FF0000" backgroundColor="#202020" />
         </screen>
     """
 
