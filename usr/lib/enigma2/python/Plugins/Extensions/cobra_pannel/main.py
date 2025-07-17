@@ -34,8 +34,8 @@ class CobraPanel(Screen):
             <!-- Due label per legenda colorata -->
             <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="42,665" size="150,40" alphatest="blend" zPosition="20" />
             <widget name="legend_green" position="20,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#00FF00" backgroundColor="#202020" />
-            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="1040,670" size="150,40" alphatest="blend" zPosition="20" />
-            <widget name="legend_red" position="1010,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#FF0000" backgroundColor="#202020" />
+            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="160,665" size="150,40" alphatest="blend" zPosition="20" />
+            <widget name="legend_red" position="130,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#FF0000" backgroundColor="#202020" />
         </screen>
     """
 
