@@ -15,6 +15,7 @@ import json
 import subprocess
 import urllib.request
 from urllib.parse import urlparse
+import re
 
 
 class CobraPanel(Screen):
@@ -73,6 +74,7 @@ class CobraPanel(Screen):
 
         self.plugins = []
         self.error_loading = False
+        self.installed_packages = self.getInstalledPackages()  # {nome: versione}
 
         self.delayTimer = eTimer()
         self.delayTimer.callback.append(self.delayedUpdate)
@@ -95,6 +97,20 @@ class CobraPanel(Screen):
         logo_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png"
         if os.path.exists(logo_path) and self["logo"].instance:
             self["logo"].instance.setPixmapFromFile(logo_path)
+
+    def getInstalledPackages(self):
+        installed = {}
+        try:
+            out = subprocess.getoutput("opkg list-installed")
+            for line in out.splitlines():
+                m = re.match(r"([^ ]+) - ([^ ]+)", line)
+                if m:
+                    pkg_name = m.group(1).lower()
+                    pkg_version = m.group(2)
+                    installed[pkg_name] = pkg_version
+        except Exception as e:
+            print("[CobraPanel] Errore recupero pacchetti installati:", e)
+        return installed
 
     def loadPlugins(self):
         url = "https://cobraliberosat.net/cobra_plugins/pluginlist.json"
@@ -121,13 +137,30 @@ class CobraPanel(Screen):
 
     def fillList(self):
         displaylist = []
+        seen_names = {}
         for plugin in self.plugins:
-            try:
-                installed = self.isInstalled(plugin["file"])
-                prefix = "● " if installed else "○ "
-                displaylist.append(prefix + plugin["name"])
-            except Exception as e:
-                print("[CobraPanel] Errore elenco plugin:", e)
+            pkg_file = os.path.basename(plugin["file"])
+            parts = pkg_file.split("_")
+            pkg_name = parts[0].lower()
+            pkg_version = parts[1] if len(parts) > 1 else ""
+
+            installed = False
+            if pkg_name in self.installed_packages:
+                installed = self.installed_packages[pkg_name] == pkg_version
+
+            name = plugin["name"]
+            prefix = "● " if installed else "○ "
+
+            if name in seen_names:
+                if installed:
+                    idx = seen_names[name]
+                    displaylist[idx] = (prefix + plugin["name"], plugin)
+                else:
+                    displaylist.append((prefix + plugin["name"], plugin))
+            else:
+                seen_names[name] = len(displaylist)
+                displaylist.append((prefix + plugin["name"], plugin))
+
         self["list"].setList(displaylist)
         if self.plugins:
             self["list"].moveToIndex(0)
@@ -136,26 +169,6 @@ class CobraPanel(Screen):
             self["footer"].setText("⚠ Errore: impossibile caricare la lista plugin.")
         else:
             self["footer"].setText("Cobra_Pannel - by CobraLiberosat")
-
-    # --- FUNZIONE MODIFICATA PER DISTINGUERE VERSIONI ---
-    def isInstalled(self, pkgfile):
-        """
-        Controlla se un plugin è installato.
-        pkgfile = nome del file .ipk (es: enigma2-plugin-extensions-wireguard-vpn_15.1_all.ipk)
-        """
-        try:
-            parts = os.path.basename(pkgfile).split("_")
-            pkg_name = parts[0].lower()
-            pkg_version = parts[1] if len(parts) > 1 else ""
-
-            out = subprocess.getoutput("opkg list-installed")
-            for line in out.splitlines():
-                if pkg_name in line.lower() and pkg_version in line:
-                    return True
-            return False
-        except Exception as e:
-            print("[CobraPanel] Errore controllo installazione:", e)
-            return False
 
     def updateInfo(self):
         index = self["list"].getSelectedIndex()
@@ -185,7 +198,15 @@ class CobraPanel(Screen):
         except Exception:
             self["icon"].hide()
 
-        installed = self.isInstalled(plugin["file"])
+        pkg_file = os.path.basename(plugin["file"])
+        parts = pkg_file.split("_")
+        pkg_name = parts[0].lower()
+        pkg_version = parts[1] if len(parts) > 1 else ""
+
+        installed = False
+        if pkg_name in self.installed_packages:
+            installed = self.installed_packages[pkg_name] == pkg_version
+
         icon_name = "green.png" if installed else "red.png"
         icon_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/icons/%s" % icon_name
         if self["status"].instance and os.path.exists(icon_path):
@@ -246,18 +267,14 @@ class CobraPanel(Screen):
         filename = os.path.basename(urlparse(url).path)
         local_path = "/tmp/%s" % filename
         try:
-            # scarica il file anche se esiste già
-            try:
-                urllib.request.urlretrieve(url, local_path)
-            except Exception:
-                pass
-
-            # forza installazione anche se dipendenze non perfette
+            urllib.request.urlretrieve(url, local_path)
             self.session.open(
                 Console,
                 title="Installazione Plugin",
-                cmdlist=["opkg install --force-overwrite --force-depends %s" % local_path],
+                cmdlist=["opkg install --force-overwrite %s" % local_path],
             )
+            self.installed_packages = self.getInstalledPackages()
+            self.loadPlugins()
         except Exception as e:
             print("[CobraPanel] Errore download/installazione:", e)
             self.session.open(
@@ -268,11 +285,16 @@ class CobraPanel(Screen):
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
             return
-        pkg = os.path.basename(self.plugins[index]["file"]).split("_")[0]
-        if self.isInstalled(self.plugins[index]["file"]):
-            plugin_name = self.plugins[index]["name"]
+        plugin = self.plugins[index]
+        pkg_file = os.path.basename(plugin["file"])
+        parts = pkg_file.split("_")
+        pkg_name = parts[0].lower()
+        pkg_version = parts[1] if len(parts) > 1 else ""
+
+        if pkg_name in self.installed_packages and self.installed_packages[pkg_name] == pkg_version:
+            plugin_name = plugin["name"]
             self.session.openWithCallback(
-                lambda confirmed: self.uninstall(pkg) if confirmed else None,
+                lambda confirmed: self.uninstall(pkg_name) if confirmed else None,
                 MessageBox,
                 "Vuoi disinstallare il plugin '{}'?".format(plugin_name),
                 MessageBox.TYPE_YESNO,
@@ -280,9 +302,18 @@ class CobraPanel(Screen):
         else:
             self.session.open(MessageBox, "Plugin non è installato.", MessageBox.TYPE_INFO)
 
-    def uninstall(self, pkg):
-        self.session.open(
-            Console, title="Disinstallazione Plugin", cmdlist=["opkg remove --force-depends %s" % pkg]
-        )
-        self.loadPlugins()
+    def uninstall(self, pkg_name):
+        try:
+            self.session.open(
+                Console,
+                title="Disinstallazione Plugin",
+                cmdlist=["opkg remove --force-depends %s" % pkg_name],
+            )
+            self.installed_packages = self.getInstalledPackages()
+            self.loadPlugins()
+        except Exception as e:
+            print("[CobraPanel] Errore disinstallazione:", e)
+            self.session.open(
+                MessageBox, "Errore nella disinstallazione: %s" % str(e), MessageBox.TYPE_ERROR
+            )
 
