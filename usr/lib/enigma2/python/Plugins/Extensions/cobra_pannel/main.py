@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 from Screens.Screen import Screen
 from Components.MenuList import MenuList
 from Components.ActionMap import ActionMap
@@ -9,33 +8,31 @@ from Components.Pixmap import Pixmap
 from Screens.MessageBox import MessageBox
 from Screens.Console import Console
 from enigma import eTimer
-
 import os
 import json
 import subprocess
 import urllib.request
 from urllib.parse import urlparse
 import re
-
+from time import strftime
 
 class CobraPanel(Screen):
     skin = """
-        <screen name="CobraPanel" position="center,center" size="1180,710" title="Cobra Panel" backgroundColor="#202020">
-            <widget name="background" position="0,0" size="1180,680" backgroundColor="#202020" zPosition="-100" />
-            <widget name="title" position="30,15" size="800,50" font="Regular;32" foregroundColor="#FFFFFF" />
-            <widget name="list" position="30,80" size="450,520" font="Regular;24" itemHeight="36" scrollbarMode="showOnDemand" backgroundColor="#303030" foregroundColor="#FFFFFF" />
-            <widget name="icon" position="510,80" size="320,320" alphatest="on" backgroundColor="#303030" />
-            <widget name="desc" position="510,420" size="620,100" font="Regular;20" foregroundColor="#DDDDDD" backgroundColor="#303030" />
-            <widget name="status" position="510,530" size="40,40" alphatest="on" zPosition="10" />
-            <widget name="statusLabel" position="560,530" size="570,40" font="Regular;22" foregroundColor="#FFFFFF" />
-            <widget name="logo" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
+        <screen name="CobraPanel" position="center,center" size="1180,710" title="Cobra Panel" backgroundColor="#101010">
+            <widget name="background" position="0,0" size="1180,680" backgroundColor="#101010" zPosition="-100" />
+            <widget name="logo_cobra" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,260" size="580,300" alphatest="blend" zPosition="10" />
-            <widget name="logo3" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png" position="800,620" size="280,280" alphatest="blend" zPosition="10" />
-            <widget name="footer" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#AAAAAA" />
-            <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="42,665" size="150,40" alphatest="blend" zPosition="20" />
-            <widget name="legend_green" position="20,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#00FF00" backgroundColor="#202020" />
-            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="160,665" size="150,40" alphatest="blend" zPosition="20" />
-            <widget name="legend_red" position="130,640" size="150,30" font="Regular;20" halign="center" foregroundColor="#FF0000" backgroundColor="#202020" />
+            <widget name="footer" position="240,25" size="900,40" font="Regular;22" foregroundColor="#00FF00" halign="left" />
+            <widget name="title" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#00FF00" />
+            <widget name="list" position="30,100" size="450,520" font="Regular;24" itemHeight="36" scrollbarMode="showOnDemand" backgroundColor="#202020" foregroundColor="#FFFFFF"/>
+            <widget name="icon" position="510,100" size="320,320" alphatest="on" backgroundColor="#303030"/>
+            <widget name="desc" position="510,430" size="620,100" font="Regular;20" foregroundColor="#DDDDDD" backgroundColor="#303030"/>
+            <widget name="status" position="510,540" size="40,40" alphatest="on" zPosition="10"/>
+            <widget name="statusLabel" position="560,540" size="570,40" font="Regular;22" foregroundColor="#FFFFFF"/>
+            <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="160,665" size="150,40" alphatest="blend" zPosition="20"/>
+            <widget name="legend_green" position="20,620" size="150,30" font="Regular;20" halign="center" foregroundColor="#00FF00" backgroundColor="#101010"/>
+            <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="42,665" size="150,40" alphatest="blend" zPosition="20"/>
+            <widget name="legend_red" position="140,620" size="120,30" font="Regular;20" halign="center" foregroundColor="#FF0000" backgroundColor="#101010"/>
         </screen>
     """
 
@@ -43,22 +40,22 @@ class CobraPanel(Screen):
         Screen.__init__(self, session)
         self.session = session
 
-        self["background"] = Pixmap()
-        self["title"] = Label("Seleziona plugin da installare")
+        # Widgets
         self["list"] = MenuList([])
         self["icon"] = Pixmap()
         self["desc"] = Label("")
+        self["title"] = Label("Cobra_Pannel - by CobraLiberosat")
         self["status"] = Pixmap()
         self["statusLabel"] = Label("")
-        self["logo"] = Pixmap()
+        self["logo_cobra"] = Pixmap()
         self["logo2"] = Pixmap()
-        self["logo3"] = Pixmap()
         self["button_ok"] = Pixmap()
         self["button_red"] = Pixmap()
         self["legend_green"] = Label("")
         self["legend_red"] = Label("")
         self["footer"] = Label("Cobra_Pannel - by CobraLiberosat")
 
+        # Actions
         self["actions"] = ActionMap(
             ["OkCancelActions", "DirectionActions", "ColorActions"],
             {
@@ -72,31 +69,20 @@ class CobraPanel(Screen):
             -1,
         )
 
+        # Dati
         self.plugins = []
+        self.installed_packages = self.getInstalledPackages()
         self.error_loading = False
-        self.installed_packages = self.getInstalledPackages()  # {nome_base: versione}
 
+        # Timer per aggiornare info
         self.delayTimer = eTimer()
         self.delayTimer.callback.append(self.delayedUpdate)
         self.delayTimer.start(100, True)
 
-        self.loadBackground()
-        self.loadLogo()
         self.loadPlugins()
 
-    # --- FUNZIONI VARIE ---
     def delayedUpdate(self):
         self.updateInfo()
-
-    def loadBackground(self):
-        bg_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/background.png"
-        if os.path.exists(bg_path) and self["background"].instance:
-            self["background"].instance.setPixmapFromFile(bg_path)
-
-    def loadLogo(self):
-        logo_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png"
-        if os.path.exists(logo_path) and self["logo"].instance:
-            self["logo"].instance.setPixmapFromFile(logo_path)
 
     def getInstalledPackages(self):
         installed = {}
@@ -105,12 +91,25 @@ class CobraPanel(Screen):
             for line in out.splitlines():
                 m = re.match(r"([^ ]+) - ([^ ]+)", line)
                 if m:
-                    pkg_name = re.sub(r'_all$', '', m.group(1).lower())
-                    pkg_version = m.group(2)
-                    installed[pkg_name] = pkg_version
-        except Exception as e:
-            print("[CobraPanel] Errore recupero pacchetti installati:", e)
+                    installed[m.group(1).lower()] = m.group(2)
+        except:
+            pass
         return installed
+
+    def parsePkgNameVersion(self, pkg_file):
+        parts = pkg_file.split("_")
+        pkg_name = parts[0].lower()
+        pkg_version = ""
+        if len(parts) > 1 and re.search(r"\d", parts[1]):
+            pkg_version = parts[1]
+        return pkg_name, pkg_version
+
+    def isPluginInstalled(self, pkg_name, pkg_version):
+        if pkg_name in self.installed_packages:
+            if pkg_version:
+                return self.installed_packages[pkg_name] == pkg_version
+            return True
+        return False
 
     def loadPlugins(self):
         url = "https://cobraliberosat.net/cobra_plugins/pluginlist.json"
@@ -118,57 +117,37 @@ class CobraPanel(Screen):
         try:
             urllib.request.urlretrieve(url, local_file)
             with open(local_file, "r") as f:
-                data = f.read()
-                plugins_json = json.loads(data)
-                if isinstance(plugins_json, list):
-                    self.plugins = plugins_json
-                else:
-                    self.plugins = plugins_json.get("plugins", [])
-            self.plugins.sort(key=lambda p: p.get("name", "").lower())
+                plugins_json = json.load(f)
+                self.plugins = plugins_json if isinstance(plugins_json,list) else plugins_json.get("plugins",[])
+            self.plugins.sort(key=lambda p: p.get("name","").lower())
             self.error_loading = False
-        except Exception as e:
-            self.error_loading = True
+        except:
             self.plugins = []
-
+            self.error_loading = True
         self.fillList()
-        self._timer = eTimer()
-        self._timer.callback.append(self.updateInfo)
-        self._timer.start(50, True)
+        self.updatePluginCount()
 
     def fillList(self):
         displaylist = []
         for plugin in self.plugins:
             pkg_file = os.path.basename(plugin["file"])
-            parts = pkg_file.split("_")
-            pkg_name = re.sub(r'_all$', '', parts[0].lower())
-            pkg_version = parts[1] if len(parts) > 1 else ""
-
-            installed = False
-            if pkg_name in self.installed_packages:
-                installed = self.installed_packages[pkg_name] == pkg_version
-
+            pkg_name, pkg_version = self.parsePkgNameVersion(pkg_file)
+            installed = self.isPluginInstalled(pkg_name, pkg_version)
             prefix = "● " if installed else "○ "
             displaylist.append((prefix + plugin["name"], plugin))
-
         self["list"].setList(displaylist)
         if self.plugins:
             self["list"].moveToIndex(0)
 
-        if self.error_loading:
-            self["footer"].setText("⚠ Errore: impossibile caricare la lista plugin.")
-        else:
-            self["footer"].setText("Cobra_Pannel - by CobraLiberosat")
-
     def updateInfo(self):
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
-            self.clearInfo()
             return
-
         plugin = self.plugins[index]
-        self["desc"].setText(plugin.get("description", "Nessuna descrizione"))
-
-        image_url = plugin.get("image", "")
+        self["desc"].setText(plugin.get("description",""))
+        
+        # Carica immagine del plugin
+        image_url = plugin.get("image","")
         local_img = "/tmp/plugin_img_%d.png" % index
         try:
             if self["icon"].instance:
@@ -184,19 +163,26 @@ class CobraPanel(Screen):
                     self["icon"].show()
                 else:
                     self["icon"].hide()
-        except Exception:
+        except:
             self["icon"].hide()
 
         pkg_file = os.path.basename(plugin["file"])
-        parts = pkg_file.split("_")
-        pkg_name = re.sub(r'_all$', '', parts[0].lower())
-        pkg_version = parts[1] if len(parts) > 1 else ""
-
-        installed = False
-        if pkg_name in self.installed_packages:
-            installed = self.installed_packages[pkg_name] == pkg_version
-
-        icon_name = "green.png" if installed else "red.png"
+        pkg_name, pkg_version = self.parsePkgNameVersion(pkg_file)
+        installed = self.isPluginInstalled(pkg_name, pkg_version)
+        
+        # Corretto: colori e cerchi
+        if installed:
+            icon_name = "red.png"      # cerchio verde
+            self["legend_green"].setText("RIMUOVI")  # piccolo logo verde
+            self["legend_red"].setText("")           # piccolo logo rosso vuoto
+            self["statusLabel"].setText("● Plugin installato")
+        else:
+            icon_name = "green.png"        # cerchio rosso
+            self["legend_red"].setText("INSTALLA")  # piccolo logo rosso
+            self["legend_green"].setText("")        # piccolo logo verde vuoto
+            self["statusLabel"].setText("○ Plugin non installato")
+        
+        # Aggiorna cerchio stato
         icon_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/icons/%s" % icon_name
         if self["status"].instance and os.path.exists(icon_path):
             self["status"].instance.setPixmapFromFile(icon_path)
@@ -205,23 +191,23 @@ class CobraPanel(Screen):
             if self["status"].instance:
                 self["status"].hide()
 
-        self["statusLabel"].setText("● Plugin installato" if installed else "○ Plugin non installato")
-        if installed:
-            self["legend_green"].setText("")
-            self["legend_red"].setText("ROSSO")
-        else:
-            self["legend_red"].setText("")
-            self["legend_green"].setText("VERDE")
+        self.updatePluginCount()
+
+    def updatePluginCount(self):
+        total = len(self.plugins)
+        installed = sum(1 for p in self.plugins if self.isPluginInstalled(*self.parsePkgNameVersion(os.path.basename(p["file"]))))
+        date_time = strftime("%d/%m/%Y %H:%M")
+        self["footer"].setText("Cobra 🐍 | {} | Plugin: {}/{}".format(date_time, installed, total))
 
     def clearInfo(self):
         self["desc"].setText("")
         self["statusLabel"].setText("")
-        if self["status"].instance:
-            self["status"].hide()
-        if self["icon"].instance:
-            self["icon"].hide()
         self["legend_green"].setText("")
         self["legend_red"].setText("")
+        if self["icon"].instance:
+            self["icon"].hide()
+        if self["status"].instance:
+            self["status"].hide()
 
     def up(self):
         self["list"].up()
@@ -233,47 +219,48 @@ class CobraPanel(Screen):
 
     def installSelectedPlugin(self):
         index = self["list"].getSelectedIndex()
-        if index < 0 or index >= len(self.plugins):
+        if index<0 or index>=len(self.plugins):
             return
         plugin = self.plugins[index]
-        self.session.openWithCallback(
-            self.startDownloadCallback,
-            MessageBox,
-            "Vuoi installare il plugin '{}'?".format(plugin["name"]),
-            MessageBox.TYPE_YESNO,
-        )
+        self.session.openWithCallback(self.startDownloadCallback, MessageBox,
+            "Vuoi installare il plugin '{}'?".format(plugin["name"]), MessageBox.TYPE_YESNO)
 
     def startDownloadCallback(self, confirmed):
         if not confirmed:
             return
         index = self["list"].getSelectedIndex()
-        if index < 0 or index >= len(self.plugins):
-            return
         plugin = self.plugins[index]
         self.startDownload(plugin["file"])
 
     def startDownload(self, url):
         filename = os.path.basename(urlparse(url).path)
-        local_path = "/tmp/%s" % filename
+        local_path = "/tmp/%s"%filename
         try:
             urllib.request.urlretrieve(url, local_path)
-            self.session.open(
-                Console,
-                title="Installazione Plugin",
-                cmdlist=["opkg install --force-overwrite %s" % local_path],
-            )
+            self.session.open(Console, title="Installazione Plugin", cmdlist=["opkg install --force-overwrite %s"%local_path])
             self.installed_packages = self.getInstalledPackages()
             self.loadPlugins()
         except Exception as e:
-            print("[CobraPanel] Errore download/installazione:", e)
-            self.session.open(
-                MessageBox, "Errore nel download: %s" % str(e), MessageBox.TYPE_ERROR
-            )
+            self.session.open(MessageBox, "Errore nel download: %s"%str(e), MessageBox.TYPE_ERROR)
 
     def confirmUninstall(self):
         index = self["list"].getSelectedIndex()
-        if index < 0 or index >= len(self.plugins):
+        if index<0 or index>=len(self.plugins):
             return
         plugin = self.plugins[index]
-        pkg_file = os
+        pkg_file = os.path.basename(plugin["file"])
+        pkg_name, pkg_version = self.parsePkgNameVersion(pkg_file)
+        if self.isPluginInstalled(pkg_name, pkg_version):
+            self.session.openWithCallback(lambda confirmed: self.uninstall(pkg_name) if confirmed else None, MessageBox,
+                                          "Vuoi disinstallare il plugin '{}'?".format(plugin["name"]), MessageBox.TYPE_YESNO)
+        else:
+            self.session.open(MessageBox, "Plugin non è installato.", MessageBox.TYPE_INFO)
+
+    def uninstall(self, pkg_name):
+        try:
+            self.session.open(Console, title="Disinstallazione Plugin", cmdlist=["opkg remove --force-depends %s"%pkg_name])
+            self.installed_packages = self.getInstalledPackages()
+            self.loadPlugins()
+        except Exception as e:
+            self.session.open(MessageBox, "Errore nella disinstallazione: %s"%str(e), MessageBox.TYPE_ERROR)
 
