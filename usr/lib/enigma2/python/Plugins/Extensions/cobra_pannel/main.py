@@ -74,7 +74,7 @@ class CobraPanel(Screen):
 
         self.plugins = []
         self.error_loading = False
-        self.installed_packages = self.getInstalledPackages()  # {nome: versione}
+        self.installed_packages = self.getInstalledPackages()  # {nome_base: versione}
 
         self.delayTimer = eTimer()
         self.delayTimer.callback.append(self.delayedUpdate)
@@ -105,7 +105,7 @@ class CobraPanel(Screen):
             for line in out.splitlines():
                 m = re.match(r"([^ ]+) - ([^ ]+)", line)
                 if m:
-                    pkg_name = m.group(1).lower()
+                    pkg_name = re.sub(r'_all$', '', m.group(1).lower())
                     pkg_version = m.group(2)
                     installed[pkg_name] = pkg_version
         except Exception as e:
@@ -137,29 +137,18 @@ class CobraPanel(Screen):
 
     def fillList(self):
         displaylist = []
-        seen_names = {}
         for plugin in self.plugins:
             pkg_file = os.path.basename(plugin["file"])
             parts = pkg_file.split("_")
-            pkg_name = parts[0].lower()
+            pkg_name = re.sub(r'_all$', '', parts[0].lower())
             pkg_version = parts[1] if len(parts) > 1 else ""
 
             installed = False
             if pkg_name in self.installed_packages:
                 installed = self.installed_packages[pkg_name] == pkg_version
 
-            name = plugin["name"]
             prefix = "● " if installed else "○ "
-
-            if name in seen_names:
-                if installed:
-                    idx = seen_names[name]
-                    displaylist[idx] = (prefix + plugin["name"], plugin)
-                else:
-                    displaylist.append((prefix + plugin["name"], plugin))
-            else:
-                seen_names[name] = len(displaylist)
-                displaylist.append((prefix + plugin["name"], plugin))
+            displaylist.append((prefix + plugin["name"], plugin))
 
         self["list"].setList(displaylist)
         if self.plugins:
@@ -200,7 +189,7 @@ class CobraPanel(Screen):
 
         pkg_file = os.path.basename(plugin["file"])
         parts = pkg_file.split("_")
-        pkg_name = parts[0].lower()
+        pkg_name = re.sub(r'_all$', '', parts[0].lower())
         pkg_version = parts[1] if len(parts) > 1 else ""
 
         installed = False
@@ -286,34 +275,5 @@ class CobraPanel(Screen):
         if index < 0 or index >= len(self.plugins):
             return
         plugin = self.plugins[index]
-        pkg_file = os.path.basename(plugin["file"])
-        parts = pkg_file.split("_")
-        pkg_name = parts[0].lower()
-        pkg_version = parts[1] if len(parts) > 1 else ""
-
-        if pkg_name in self.installed_packages and self.installed_packages[pkg_name] == pkg_version:
-            plugin_name = plugin["name"]
-            self.session.openWithCallback(
-                lambda confirmed: self.uninstall(pkg_name) if confirmed else None,
-                MessageBox,
-                "Vuoi disinstallare il plugin '{}'?".format(plugin_name),
-                MessageBox.TYPE_YESNO,
-            )
-        else:
-            self.session.open(MessageBox, "Plugin non è installato.", MessageBox.TYPE_INFO)
-
-    def uninstall(self, pkg_name):
-        try:
-            self.session.open(
-                Console,
-                title="Disinstallazione Plugin",
-                cmdlist=["opkg remove --force-depends %s" % pkg_name],
-            )
-            self.installed_packages = self.getInstalledPackages()
-            self.loadPlugins()
-        except Exception as e:
-            print("[CobraPanel] Errore disinstallazione:", e)
-            self.session.open(
-                MessageBox, "Errore nella disinstallazione: %s" % str(e), MessageBox.TYPE_ERROR
-            )
+        pkg_file = os
 
