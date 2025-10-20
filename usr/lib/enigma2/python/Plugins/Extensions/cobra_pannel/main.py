@@ -22,11 +22,11 @@ class CobraPanel(Screen):
             <widget name="background" position="0,0" size="1180,680" backgroundColor="#101010" zPosition="-100" />
             <widget name="logo_cobra" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,260" size="580,300" alphatest="blend" zPosition="10" />
-            <widget name="footer" position="240,25" size="900,40" font="Regular;22" foregroundColor="#00FF00" halign="left" />
-            <widget name="title" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#00FF00" />
+            <widget name="footer" position="240,25" size="900,40" font="Regular;22" foregroundColor="#daa520" halign="left" />
+            <widget name="title" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#00FFFF" />
             <widget name="list" position="30,100" size="450,520" font="Regular;24" itemHeight="36" scrollbarMode="showOnDemand" backgroundColor="#202020" foregroundColor="#FFFFFF"/>
             <widget name="icon" position="510,100" size="320,320" alphatest="on" backgroundColor="#303030"/>
-            <widget name="desc" position="510,430" size="620,100" font="Regular;20" foregroundColor="#DDDDDD" backgroundColor="#303030"/>
+            <widget name="desc" position="510,430" size="620,100" font="Regular;20" foregroundColor="#daa520" backgroundColor="#303030"/>
             <widget name="status" position="510,540" size="40,40" alphatest="on" zPosition="10"/>
             <widget name="statusLabel" position="560,540" size="570,40" font="Regular;22" foregroundColor="#FFFFFF"/>
             <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="160,665" size="150,40" alphatest="blend" zPosition="20"/>
