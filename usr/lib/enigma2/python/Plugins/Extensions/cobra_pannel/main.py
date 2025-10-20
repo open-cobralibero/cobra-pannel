@@ -30,9 +30,9 @@ class CobraPanel(Screen):
             <widget name="status" position="510,540" size="40,40" alphatest="on" zPosition="10"/>
             <widget name="statusLabel" position="560,540" size="570,40" font="Regular;22" foregroundColor="#FFFFFF"/>
             <widget name="button_ok" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/ok.png" position="160,665" size="150,40" alphatest="blend" zPosition="20"/>
-            <widget name="legend_green" position="20,620" size="150,30" font="Regular;20" halign="center" foregroundColor="#00FF00" backgroundColor="#101010"/>
+            <widget name="legend_green" position="20,620" size="150,30" font="Regular;20" halign="center" foregroundColor="#FF0000" backgroundColor="#101010"/>
             <widget name="button_red" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/buttons/red.png" position="42,665" size="150,40" alphatest="blend" zPosition="20"/>
-            <widget name="legend_red" position="140,620" size="120,30" font="Regular;20" halign="center" foregroundColor="#FF0000" backgroundColor="#101010"/>
+            <widget name="legend_red" position="140,620" size="120,30" font="Regular;20" halign="center" foregroundColor="#00FF00" backgroundColor="#101010"/>
         </screen>
     """
 
@@ -197,7 +197,7 @@ class CobraPanel(Screen):
         total = len(self.plugins)
         installed = sum(1 for p in self.plugins if self.isPluginInstalled(*self.parsePkgNameVersion(os.path.basename(p["file"]))))
         date_time = strftime("%d/%m/%Y %H:%M")
-        self["footer"].setText("Cobra 🐍 | {} | Plugin: {}/{}".format(date_time, installed, total))
+        self["footer"].setText(" 🐍 | {} | Plugin: {}/{}".format(date_time, installed, total))
 
     def clearInfo(self):
         self["desc"].setText("")
