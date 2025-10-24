@@ -112,7 +112,7 @@ class CobraPanel(Screen):
         return False
 
     def loadPlugins(self):
-        url = "https://cobraliberosat.net/cobra_plugins/pluginlist.json"
+        url = "URL_JSON = "https://raw.githubusercontent.com/open-cobralibero/cobra_plugins/main/pluginlist.json"
         local_file = "/tmp/pluginlist.json"
         try:
             urllib.request.urlretrieve(url, local_file)
