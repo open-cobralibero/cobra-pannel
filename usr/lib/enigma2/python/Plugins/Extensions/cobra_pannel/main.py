@@ -22,8 +22,9 @@ class CobraPanel(Screen):
             <widget name="background" position="0,0" size="1180,680" backgroundColor="#101010" zPosition="-100" />
             <widget name="logo_cobra" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,260" size="580,300" alphatest="blend" zPosition="10" />
-            <widget name="footer" position="240,25" size="900,40" font="Regular;22" foregroundColor="#daa520" halign="left" />
-            <widget name="title" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#00FFFF" />
+            <widget name="logo_small" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo_small.png" position="170,25" size="45,45" zPosition="5"/>
+            <widget name="footer" position="240,25" size="900,40" font="Regular;24" foregroundColor="#daa520" halign="left" />
+            <widget name="title" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#00FF00" />
             <widget name="list" position="30,100" size="450,520" font="Regular;24" itemHeight="36" scrollbarMode="showOnDemand" backgroundColor="#202020" foregroundColor="#FFFFFF"/>
             <widget name="icon" position="510,100" size="320,320" alphatest="on" backgroundColor="#303030"/>
             <widget name="desc" position="510,430" size="620,100" font="Regular;20" foregroundColor="#daa520" backgroundColor="#303030"/>
@@ -40,6 +41,9 @@ class CobraPanel(Screen):
         Screen.__init__(self, session)
         self.session = session
 
+        # Token per repo privato (lascia vuoto se pubblico)
+        self.GITHUB_TOKEN = "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"
+
         # Widgets
         self["list"] = MenuList([])
         self["icon"] = Pixmap()
@@ -49,6 +53,7 @@ class CobraPanel(Screen):
         self["statusLabel"] = Label("")
         self["logo_cobra"] = Pixmap()
         self["logo2"] = Pixmap()
+        self["logo_small"] = Pixmap()
         self["button_ok"] = Pixmap()
         self["button_red"] = Pixmap()
         self["legend_green"] = Label("")
@@ -115,15 +120,23 @@ class CobraPanel(Screen):
         url = "https://raw.githubusercontent.com/open-cobralibero/cobra_plugins/main/pluginlist.json"
         local_file = "/tmp/pluginlist.json"
         try:
-            urllib.request.urlretrieve(url, local_file)
-            with open(local_file, "r") as f:
-                plugins_json = json.load(f)
-                self.plugins = plugins_json if isinstance(plugins_json,list) else plugins_json.get("plugins",[])
+            if self.GITHUB_TOKEN:
+                req = urllib.request.Request(url)
+                req.add_header("Authorization", f"token {self.GITHUB_TOKEN}")
+                with urllib.request.urlopen(req) as response:
+                    plugins_json = json.loads(response.read().decode())
+            else:
+                urllib.request.urlretrieve(url, local_file)
+                with open(local_file, "r") as f:
+                    plugins_json = json.load(f)
+
+            self.plugins = plugins_json if isinstance(plugins_json,list) else plugins_json.get("plugins",[])
             self.plugins.sort(key=lambda p: p.get("name","").lower())
             self.error_loading = False
         except:
             self.plugins = []
             self.error_loading = True
+
         self.fillList()
         self.updatePluginCount()
 
@@ -170,19 +183,17 @@ class CobraPanel(Screen):
         pkg_name, pkg_version = self.parsePkgNameVersion(pkg_file)
         installed = self.isPluginInstalled(pkg_name, pkg_version)
         
-        # Corretto: colori e cerchi
         if installed:
-            icon_name = "red.png"      # cerchio verde
-            self["legend_green"].setText("RIMUOVI")  # piccolo logo verde
-            self["legend_red"].setText("")           # piccolo logo rosso vuoto
+            icon_name = "red.png"
+            self["legend_green"].setText("RIMUOVI")
+            self["legend_red"].setText("")
             self["statusLabel"].setText("● Plugin installato")
         else:
-            icon_name = "green.png"        # cerchio rosso
-            self["legend_red"].setText("INSTALLA")  # piccolo logo rosso
-            self["legend_green"].setText("")        # piccolo logo verde vuoto
+            icon_name = "green.png"
+            self["legend_red"].setText("INSTALLA")
+            self["legend_green"].setText("")
             self["statusLabel"].setText("○ Plugin non installato")
         
-        # Aggiorna cerchio stato
         icon_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/icons/%s" % icon_name
         if self["status"].instance and os.path.exists(icon_path):
             self["status"].instance.setPixmapFromFile(icon_path)
