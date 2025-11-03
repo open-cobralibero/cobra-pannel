@@ -20,8 +20,8 @@ class CobraPanel(Screen):
     skin = """
         <screen name="CobraPanel" position="center,center" size="1180,710" title="Cobra Panel" backgroundColor="#101010">
             <widget name="background" position="0,0" size="1180,680" backgroundColor="#101010" zPosition="-100" />
-            <widget name="logo_cobra" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
-            <widget name="logo2" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png" position="490,260" size="580,300" alphatest="blend" zPosition="10" />
+            <widget name="logo_cobra" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo1.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
+            <widget name="logo4" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo4.png" position="490,260" size="580,300" alphatest="blend" zPosition="10" />
             <widget name="logo_small" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo_small.png" position="170,25" size="45,45" zPosition="5"/>
             <widget name="footer" position="240,25" size="900,40" font="Regular;24" foregroundColor="#daa520" halign="left" />
             <widget name="title" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#00FF00" />
@@ -49,7 +49,7 @@ class CobraPanel(Screen):
         self["status"] = Pixmap()
         self["statusLabel"] = Label("")
         self["logo_cobra"] = Pixmap()
-        self["logo2"] = Pixmap()
+        self["logo4"] = Pixmap()
         self["logo_small"] = Pixmap()
         self["button_ok"] = Pixmap()
         self["button_red"] = Pixmap()
@@ -57,7 +57,7 @@ class CobraPanel(Screen):
         self["legend_red"] = Label("")
         self["footer"] = Label("Cobra_Pannel - by CobraLiberosat")
 
-        # Actions
+        # Azioni
         self["actions"] = ActionMap(
             ["OkCancelActions", "DirectionActions", "ColorActions"],
             {
@@ -76,16 +76,28 @@ class CobraPanel(Screen):
         self.installed_packages = self.getInstalledPackages()
         self.error_loading = False
 
-        # Timer per aggiornare info
+        # Timer aggiornamento info
         self.delayTimer = eTimer()
         self.delayTimer.callback.append(self.delayedUpdate)
         self.delayTimer.start(100, True)
+
+        # Animazione logo
+        self.logo_frames = [
+            "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo1.png",
+            "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo2.png",
+            "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo3.png",
+        ]
+        self.logo_index = 0
+        self.logo_timer = eTimer()
+        self.logo_timer.callback.append(self.updateLogo)
+        self.logo_timer.start(2000, False)  # 2 secondi per frame
 
         self.loadPlugins()
 
     def delayedUpdate(self):
         self.updateInfo()
 
+    # ---------- Package Methods ----------
     def getInstalledPackages(self):
         installed = {}
         try:
@@ -113,6 +125,7 @@ class CobraPanel(Screen):
             return True
         return False
 
+    # ---------- Load Plugins ----------
     def loadPlugins(self):
         url = "https://raw.githubusercontent.com/open-cobralibero/cobra_plugins/main/pluginlist.json"
         local_file = "/tmp/pluginlist.json"
@@ -141,14 +154,15 @@ class CobraPanel(Screen):
         if self.plugins:
             self["list"].moveToIndex(0)
 
+    # ---------- Update Info ----------
     def updateInfo(self):
         index = self["list"].getSelectedIndex()
         if index < 0 or index >= len(self.plugins):
             return
         plugin = self.plugins[index]
         self["desc"].setText(plugin.get("description",""))
-        
-        # Carica immagine del plugin
+
+        # Immagine plugin
         image_url = plugin.get("image","")
         local_img = "/tmp/plugin_img_%d.png" % index
         try:
@@ -171,20 +185,19 @@ class CobraPanel(Screen):
         pkg_file = os.path.basename(plugin["file"])
         pkg_name, pkg_version = self.parsePkgNameVersion(pkg_file)
         installed = self.isPluginInstalled(pkg_name, pkg_version)
-        
-        # Corretto: colori e cerchi
+
+        # Colori e cerchi
         if installed:
-            icon_name = "red.png"      # cerchio verde
-            self["legend_green"].setText("RIMUOVI")  # piccolo logo verde
-            self["legend_red"].setText("")           # piccolo logo rosso vuoto
+            icon_name = "red.png"
+            self["legend_green"].setText("RIMUOVI")
+            self["legend_red"].setText("")
             self["statusLabel"].setText("● Plugin installato")
         else:
-            icon_name = "green.png"        # cerchio rosso
-            self["legend_red"].setText("INSTALLA")  # piccolo logo rosso
-            self["legend_green"].setText("")        # piccolo logo verde vuoto
+            icon_name = "green.png"
+            self["legend_red"].setText("INSTALLA")
+            self["legend_green"].setText("")
             self["statusLabel"].setText("○ Plugin non installato")
-        
-        # Aggiorna cerchio stato
+
         icon_path = "/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/icons/%s" % icon_name
         if self["status"].instance and os.path.exists(icon_path):
             self["status"].instance.setPixmapFromFile(icon_path)
@@ -211,6 +224,7 @@ class CobraPanel(Screen):
         if self["status"].instance:
             self["status"].hide()
 
+    # ---------- Navigation ----------
     def up(self):
         self["list"].up()
         self.updateInfo()
@@ -219,6 +233,7 @@ class CobraPanel(Screen):
         self["list"].down()
         self.updateInfo()
 
+    # ---------- Install / Uninstall ----------
     def installSelectedPlugin(self):
         index = self["list"].getSelectedIndex()
         if index<0 or index>=len(self.plugins):
@@ -265,4 +280,14 @@ class CobraPanel(Screen):
             self.loadPlugins()
         except Exception as e:
             self.session.open(MessageBox, "Errore nella disinstallazione: %s"%str(e), MessageBox.TYPE_ERROR)
+
+    # ---------- Logo Animation ----------
+    def updateLogo(self):
+        self.logo_index = (self.logo_index + 1) % len(self.logo_frames)
+        try:
+            if self["logo_cobra"].instance:
+                self["logo_cobra"].instance.setPixmapFromFile(self.logo_frames[self.logo_index])
+        except:
+            pass
+        self.logo_timer.start(2000, False)  # 2 secondi/frame
 
