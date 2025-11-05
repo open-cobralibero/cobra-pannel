@@ -1,4 +1,4 @@
-#!/usr/bin/python
+﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
 from Screens.Screen import Screen
 from Components.MenuList import MenuList
@@ -22,7 +22,7 @@ class CobraPanel(Screen):
             <widget name="background" position="0,0" size="1180,680" backgroundColor="#101010" zPosition="-100" />
             <widget name="logo_cobra" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo1.png" position="840,15" size="280,280" alphatest="blend" zPosition="10" />
             <widget name="logo4" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo4.png" position="490,260" size="580,300" alphatest="blend" zPosition="10" />
-            <widget name="logo_small" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo_small.png" position="170,25" size="45,45" zPosition="5"/>
+            <widget name="logo_small" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/cobra_pannel/logo_small.png" position="170,25" size="75,75" zPosition="5"/>
             <widget name="footer" position="240,25" size="900,40" font="Regular;24" foregroundColor="#daa520" halign="left" />
             <widget name="title" position="30,600" size="1120,30" font="Regular;22" halign="center" foregroundColor="#00FF00" />
             <widget name="list" position="30,100" size="450,520" font="Regular;24" itemHeight="36" scrollbarMode="showOnDemand" backgroundColor="#202020" foregroundColor="#FFFFFF"/>
